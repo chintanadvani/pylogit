@@ -5,6 +5,9 @@ This file contains functions for visualizing predictive model checks.
 import sys
 from numbers import Number
 from copy import deepcopy
+# Use set_trace to set debugging break points
+from pdb import set_trace as bp
+
 import scipy.stats
 import numpy as np
 import pandas as pd
@@ -17,8 +20,6 @@ import statsmodels.api as sm
 # used to plot empirical CDFs
 import statsmodels.tools as sm_tools
 import statsmodels.distributions as sm_dist
-# Use set_trace to set debugging break points
-from pdb import set_trace as bp
 
 # # Use binary_lowess to fit a binary lowess curve
 # from binary_lowess import lowess as b_lowess
