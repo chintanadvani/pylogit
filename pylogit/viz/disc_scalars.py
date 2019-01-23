@@ -120,13 +120,8 @@ def _plot_predictive_counts(predictions,
         bin_widths = 1
 
     # Plot the counts directly.
-    axis.bar(pred_edges,
-             pred_counts,
-             width=bin_widths,
-             align='edge',
-             color=color,
-             alpha=alpha,
-             label=label)
+    axis.bar(pred_edges, pred_counts, width=bin_widths, align='edge',
+             color=color, alpha=alpha, label=label)
     return None
 
 
