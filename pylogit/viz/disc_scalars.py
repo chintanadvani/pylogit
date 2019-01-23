@@ -26,7 +26,7 @@ def _calc_num_simulated_obs_meeting_a_condition(simulated_y, condition):
     Returns
     -------
     num : scalar.
-        The number observations with `simulated_y == 1` and `condition == True`.
+        The number observations with `simulated_y == 1 and condition == True`.
     """
     if simulated_y.shape[0] != condition.shape[0]:
         msg = 'simulated_y.shape[0] MUST EQUAL condition.shape[0]'
@@ -49,15 +49,15 @@ def _get_value_counts_categorical(df, column, alt_filter, ascending=False):
     alt_filter : 1D boolean ndarray.
         Denotes the rows of `df` that are to be counted when item-counting.
     ascending : bool, optional.
-        Denotes whether the counts are to be returned in ascending order or not.
-        Default == False (return the counts from largest to smallest).
+        Denotes whether the counts are to be returned in ascending order or
+        not. Default == False (return the counts from largest to smallest).
 
     Returns
     -------
     value_counts : pandas Series
         The index will contain the unique values from
-        `df.loc[alt_filter, column]`, and the values of the Series will be count
-        of how many times the corresponding index value was in
+        `df.loc[alt_filter, column]`, and the values of the Series will be
+        a count of how many times the corresponding index value was in
         `df.loc[alt_filter, column]`.
     """
     # Value count the rows pertaining to the alternative of interest
@@ -147,8 +147,8 @@ def plot_discrete_scalars(df,
                           output_file='',
                           dpi=500):
     """
-    Plots the observed value versus the predictive distribution of the number of
-    observations meeting some criteria (`alt_filter`), having `y == 1`, and
+    Plots the observed value versus the predictive distribution of the number
+    of observations meeting some criteria (`alt_filter`), having `y == 1`, and
     having a particular value of `df.loc[alt_filter, column]`. This function
     allows one to examine `P(column | y == 1 & alt_filter == True)`.
 
@@ -165,8 +165,8 @@ def plot_discrete_scalars(df,
         There should be one row for every row in `df`. There should be one
         column for each set of simulated outcomes.
     column : str.
-        The (categorical or mixed categorical / continuous) column in `df` whose
-        distribution is to be examined given that a row's predicted `y == 1`.
+        The (categorical or mixed categorical / continuous) column in `df`
+        whose distribution is to be examined given that `y == 1`.
     alt_filter : 1D ndarray of booleans.
         Should have the same number of rows as `df`. Will denote the rows
         that should be used when examining the distribution of `column` given
@@ -174,8 +174,8 @@ def plot_discrete_scalars(df,
     orig_choices : 1D ndarray of ints in `{0, 1}`.
         Denotes the original outcomes in one's dataset.
     top_n : int or None, optional.
-        Only plots the predictive distibutions of the `top_n` most common values
-        in `df.loc[alt_filter, column]`. If None, the predictive distribution of
+        Only plots the predictive distibutions of the `top_n` most common
+        values in `df.loc[alt_filter, column]`. If None, the distributions of
         all the values in `df.loc[alt_filter, column]` are shown.
     min_obs : int or None, optional.
         The minimum number of observations having a given value of
@@ -194,11 +194,11 @@ def plot_discrete_scalars(df,
         determines the location of the legend on the plot. Default = 'best'.
     x_label : str or None, optional.
         The label for the x-axis. Will be called with `x_label.format(num)`
-        where `num` is a unique value from `df.loc[alt_filter, column]`. Default
-        is ''.
+        where `num` is a unique value from `df.loc[alt_filter, column]`.
+        Default is ''.
     filter_name : str, optional.
-        If `x_label is None`, `filter_name` will be used in the following manner
-        to generate a label for the x-axis. We will use
+        If `x_label is None`, `filter_name` will be used in the following
+        manner to generate a label for the x-axis. We will use
         `'Number of {} with {} == {}'.format(filter_name, column, num)` where,
         again, `num` is a unique value from `df.loc[alt_filter, column]`.
         Default is ''.

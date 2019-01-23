@@ -37,8 +37,8 @@ def plot_continous_scalars(sim_scalars,
     obs_scalar : int, float, or long.
         The scalar value for one's model with the observed outcomes.
     kde : bool, optional.
-        Determines whether a kernel density estimate is plotted. If `kde=False`,
-        a cumulative density plot is made.
+        Determines whether a kernel density estimate is plotted. If
+        `kde=False`, a cumulative density plot is made.
     fig_and_ax : list of matplotlib figure and axis, or `None`, optional.
         Determines whether a new figure will be created for the plot or whether
         the plot will be drawn on existing axes. If None, a new figure will be

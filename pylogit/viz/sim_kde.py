@@ -62,7 +62,7 @@ def plot_simulated_kde_traces(sim_y,
     col_to_plot : str.
         A column in `orig_df` whose data will be used to compute the KDEs.
     choice_col : str.
-        The column in `orig_df` that contains the data on the original outcomes.
+        The column in `orig_df` that contains the original outcome data.
     sim_color, orig_color : valid 'color' argument for matplotlib, optional.
         The colors that will be used to plot the simulated and observed KDEs,
         respectively. Default is `sim_color == '#a6bddb'` and
@@ -96,15 +96,15 @@ def plot_simulated_kde_traces(sim_y,
         If None, the full dataset will be used. Default is None.
     n_traces : int or None, optional.
         Should be less than `sim_y.shape[1]`. Denotes the number of simulated
-        choices to randomly select for plotting. If None, all columns of `sim_y`
-        will be used for plotting. Default == 100.
+        choices to randomly select for plotting. If None, all columns of
+        `sim_y` will be used for plotting. Default == 100.
     rseed : int or None, optional.
-        Denotes the random seed to be used when selecting the `n_traces` columns
-        for plotting. This is useful for reproducing an exact plot when using
-        `n_traces`. If None, no random seed will be set. Default is None.
+        Denotes the random seed to be used when selecting the `n_traces`
+        columns for plotting. This is useful for reproducing an exact plot when
+        using `n_traces`. If None, no random seed will be set. Default is None.
     show : bool, optional.
-        Determines whether `fig.show()` will be called after the plots have been
-        drawn. Default is True.
+        Determines whether `fig.show()` will be called after the plots have
+        been drawn. Default is True.
     figsize : 2-tuple of ints, optional.
         If a new figure is created for this plot, this kwarg determines the
         width and height of the figure that is created. Default is `(5, 3)`.
