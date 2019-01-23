@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 from .utils import _label_despine_save_and_show_plot
 from .plot_utils import _plot_single_cdf_on_axis
 
+# Set the plotting style
+sbn.set_style('darkgrid')
+
 
 def plot_continous_scalars(sim_scalars,
                            obs_scalar,

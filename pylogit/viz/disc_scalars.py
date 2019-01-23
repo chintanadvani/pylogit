@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 
 from .utils import _label_despine_save_and_show_plot
 
+# Set the plotting style
+sbn.set_style('darkgrid')
+
 
 def _calc_num_simulated_obs_meeting_a_condition(simulated_y, condition):
     """
