@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+Functions for plotting simulated vs observed, discrete scalars.
+"""
 from __future__ import absolute_import
 
 from copy import deepcopy
