@@ -12,7 +12,7 @@ import numpy as np
 import seaborn as sbn
 import matplotlib.pyplot as plt
 
-from .utils import _label_despine_save_and_show_plot
+from .plot_utils import _label_despine_save_and_show_plot
 
 # Set the plotting style
 sbn.set_style('darkgrid')

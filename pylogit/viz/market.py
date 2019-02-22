@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from .utils import _label_despine_save_and_show_plot
 from .utils import progress
+from .plot_utils import _label_despine_save_and_show_plot
 
 
 def _get_objects_for_market_share_plot(x,

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 from .utils import progress
-from .utils import _label_despine_save_and_show_plot
+from .plot_utils import _label_despine_save_and_show_plot
 from .plot_utils import _choice_evaluator
 from .plot_utils import _thin_rows
 from .plot_utils import _plot_single_cdf_on_axis

@@ -7,7 +7,7 @@ from __future__ import absolute_import
 import seaborn as sbn
 import matplotlib.pyplot as plt
 
-from .utils import _label_despine_save_and_show_plot
+from .plot_utils import _label_despine_save_and_show_plot
 from .plot_utils import _plot_single_cdf_on_axis
 
 # Set the plotting style
