@@ -10,8 +10,99 @@ import numpy as np
 from sklearn.ensemble import (ExtraTreesClassifier,
                               ExtraTreesRegressor)
 
-from .plot_utils import _determine_bin_obs
-from .plot_utils import _populate_bin_means_for_plots
+
+def _determine_bin_obs(total, partitions):
+    """
+    Determines the number of observations that should be in a given partition.
+
+    Parameters
+    ----------
+    total : positive int.
+        Denotes the total number of observations that are to be partitioned.
+    partitions : positive int.
+        Denotes the number of partitions that are to be created. Should be
+        less than or equal to `total`.
+
+    Returns
+    -------
+    obs_per_partition : 1D ndarray of positive its.
+        Denotes the number of observations to be placed in each partition.
+        Will have one element per partition.
+    """
+    partitions_float = float(partitions)
+    naive = int(total / partitions_float) * np.ones(partitions)
+    correction = np.ones(partitions)
+    correction[total % partitions:] = 0
+    return (naive + correction).astype(int)
+
+
+def _populate_bin_means_for_plots(x_vals,
+                                  y_vals,
+                                  obs_per_bin,
+                                  mean_x,
+                                  mean_y,
+                                  auxillary_y=None,
+                                  auxillary_mean=None):
+    """
+    Populate the mean per bin of predicted probabilities, observed outcomes,
+    and simulated outcomes.
+
+    Parameters
+    ----------
+    x_vals : 1D ndarray of floats.
+        Elements should be the sorted values to be placed on the x-axis.
+    y_vals : 1D ndarray of floats.
+        Elements should be the values to be averaged and placed on the y-axis.
+        Should have been sorted in the same order as `x_vals`.
+    obs_per_bin : 1D ndarray of positive ints.
+        There should be one element per bin. Each element should denote the
+        number of observations to be used in each partition.
+    mean_x, mean_y : 1D ndarray.
+        `mean_x.size` and `mean_y.size` should equal `obs_per_bin.size`.
+    auxillary_y : 1D ndarray or None, optional.
+        Same as `y_vals` except these elements denote additional values to be
+        plotted on the y-axis.
+    auxillary_mean : 1D ndarray or None, optional.
+        Same as `mean_x` and `mean_y`.
+
+    Returns
+    -------
+    mean_x : 1D ndarray.
+        Will have 1 element per partition. Each value will denote the mean of
+        the `x_vals` for all observations in the partition.
+    mean_y : 1D ndarray.
+        Will have 1 element per partition. Each value will denote the mean of
+        the `y_vals` for all observations in the partition.
+    auxillary_mean : 1D ndarray or None.
+        Will have 1 element per partition. Each value will denote the mean of
+        the `auxillary_y` for all observations in the partition. If
+        `auxillary_mean` was passed as None, it will be returned as None.
+    """
+    # Initialize a row counter
+    row_counter = 0
+
+    # Iterate over each of the partitions
+    for i in range(obs_per_bin.size):
+        # Get the upper and lower ranges of the slice
+        lower_row = row_counter
+        upper_row = row_counter + obs_per_bin[i]
+
+        # Get the particular observations we care about
+        rel_x = x_vals[lower_row:upper_row]
+        rel_y = y_vals[lower_row:upper_row]
+
+        # Store the mean probs and mean y
+        mean_x[i] = rel_x.mean()
+        mean_y[i] = rel_y.mean()
+
+        # Store the mean simulated y per group
+        if auxillary_y is not None:
+            rel_auxillary_y = auxillary_y[lower_row:upper_row]
+            auxillary_mean[i] = rel_auxillary_y.mean()
+
+        # Update the row counter
+        row_counter += obs_per_bin[i]
+    return mean_x, mean_y, auxillary_mean
 
 
 def _get_extra_smooth_xy(x, y,
@@ -255,7 +346,7 @@ class SmoothPlotter(object):
         self.smoother = smoother
         return None
 
-    def plot(self, X, Y, label=None, color='#a6cee3', alpha=0.5):
+    def plot(self, X, Y, label=None, color='#a6cee3', alpha=0.5, sort=False):
         """
         Plots a smooth estimate of the conditional expectation function E[y|x].
 
@@ -271,13 +362,21 @@ class SmoothPlotter(object):
         alpha : positive float in [0.0, 1.0], or `None`, optional.
             Determines the opacity of the elements drawn on the plot.
             0.0 == transparent and 1.0 == opaque. Default == 0.5.
+        sort : bool, optional.
+            Determines if `X` and `Y` will be sorted before they are smoothed
+            and plotted. Default is False.
 
         Returns
         -------
         None.
         """
+        if sort:
+            sort_order = np.argsort(X)
+            sorted_x, sorted_y = X[sort_order], Y[sort_order]
+        else:
+            sorted_x, sorted_y = X, Y
         # Get the smoothed x and y values to be plotted.
-        plot_x, plot_y = self.smoother(X, Y)
+        plot_x, plot_y = self.smoother(sorted_x, sorted_y)
         # Make the desired plot
         self.ax.plot(plot_x, plot_y, c=color, alpha=alpha, label=label)
         return None
