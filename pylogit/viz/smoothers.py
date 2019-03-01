@@ -35,7 +35,10 @@ def _get_extra_smooth_xy(x, y,
     min_samples_leaf : positive int, optional.
         Determines the minimum number of observations allowed in a leaf node in
         any tree in the ensemble. This parameter is conceptually equivalent to
-        the bandwidth parameter in a kernel density estimator.
+        the bandwidth parameter in a kernel density estimator. Default == 10.
+    random_state : positive int, or None, optional.
+        Denotes the random seed to be used when constructing the ensemble of
+        Extremely Randomized Trees. Default is None.
 
     Returns
     -------
@@ -122,6 +125,21 @@ class Smoother(object):
 
 
 class DiscreteSmoother(Smoother):
+    """
+    A Smoother object that takes in continuous X and binary or continuous Y and
+    computes a discrete (i.e binned) smooth of the conditional expectation
+    function, E[y | x].
+
+    Parameters
+    ----------
+    num_obs : positive int.
+        Determines the number of observations in the vectors of X and Y that
+        will later be smoothed. This arg is needed to optimize computations
+        when calculating many smooths.
+    partitions : positive int, optional.
+        Denotes the number of partitions to split one's data into for binning.
+        Default == 10.
+    """
     def __init__(self,
                  num_obs,
                  partitions=10):
@@ -164,6 +182,27 @@ class DiscreteSmoother(Smoother):
 
 
 class ContinuousSmoother(Smoother):
+    """
+    A Smoother object that takes in continuous X and binary or continuous Y and
+    computes a continuous smooth of the conditional expectation function,
+    E[y | x], using an ensemble of Extremely Randomized Trees.
+
+    Parameters
+    ----------
+    n_estimators : positive int, optional.
+        Determines the number of trees in the ensemble of Extremely Randomized
+        Trees that is used to do continuous smoothing. This parameter controls
+        how smooth one's resulting estimate is. The more estimators the
+        smoother one's estimated relationship and the lower the variance in
+        that estimated relationship. Default == 50.
+    min_samples_leaf : positive int, optional.
+        Determines the minimum number of observations allowed in a leaf node in
+        any tree in the ensemble. This parameter is conceptually equivalent to
+        the bandwidth parameter in a kernel density estimator. Default == 10.
+    random_state : positive int, or None, optional.
+        Denotes the random seed to be used when constructing the ensemble of
+        Extremely Randomized Trees. Default is None.
+    """
     def __init__(self,
                  n_estimators=50,
                  min_samples_leaf=10,
@@ -200,6 +239,17 @@ class ContinuousSmoother(Smoother):
 
 
 class SmoothPlotter(object):
+    """
+    An object that plots single smooths of the conditional expectation
+    function, E[y | x].
+
+    Parameters
+    ----------
+    smoother : an instance or instance of a subclass of Smoother.
+        This arg is used to produce the smooths that are then plotted.
+    ax : an instance of matplotlib.Axes.
+        The axi on which the smooth is plotted.
+    """
     def __init__(self, smoother, ax):
         self.ax = ax
         self.smoother = smoother
