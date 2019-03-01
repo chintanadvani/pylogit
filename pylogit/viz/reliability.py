@@ -11,8 +11,7 @@ import matplotlib.pyplot as plt
 
 from .utils import progress
 from .plot_utils import _label_despine_save_and_show_plot
-from .plot_utils import _determine_bin_obs
-from .plot_utils import _plot_single_binned_x_vs_binned_y
+from .smoothers import DiscreteSmoother, ContinuousSmoother, SmoothPlotter
 
 # Set the plotting style
 sbn.set_style('darkgrid')
@@ -50,72 +49,6 @@ def _check_reliability_args(probs, choices, partitions, sim_y):
     return None
 
 
-def _plot_single_binned_reliability_curve(probs,
-                                          choices,
-                                          col,
-                                          ax,
-                                          line_label,
-                                          line_color,
-                                          alpha,
-                                          obs_per_partition,
-                                          mean_probs_per_group,
-                                          mean_y_per_group):
-    """
-    Plots a single, binned reliability curve on the provided matplotlib Axes.
-
-    Parameters
-    ----------
-    probs : 1D or 2D ndarray.
-        Each element should be in [0, 1]. There should be 1 column for each
-        set of predicted probabilities. These will be plotted on the x-axis.
-    choices : 1D ndarray.
-        Each element should be either a zero or a one. Elements should denote
-        whether the alternative corresponding to the given row was chosen or
-        not. A 'one' corresponds to a an outcome of 'success'.
-    col : int
-        The current column in `probs` to use when computing the x-axis values.
-    ax : matplotlib Axes instance
-        The Axes that the reliability curve should be plotted on.
-    line_label : str or None.
-        Denotes the label to be used for the lines relating the predicted
-        probabilities and the binned, empirical probabilities.
-    line_color : valid matplotlib color.
-        Determines the color that is used to plot the predicted probabilities
-        versus the observed choices.
-    alpha : positive float in [0.0, 1.0], or `None`, optional.
-        Determines the opacity of the elements drawn on the plot.
-        0.0 == transparent and 1.0 == opaque. Default == 1.0.
-    obs_per_partition : 1D ndarray of positive its.
-        Denotes the number of observations to be placed in each partition.
-        Will have one element per partition.
-    mean_probs_per_group, mean_y_per_group : 1D ndarray of positive scalars.
-        Denotes the mean of the probabilities and observed choices per 'bin'.
-
-    Returns
-    -------
-    None. `ax` is modified in place: the line is plotted and the label added.
-    """
-    # Get the current line label and probabilities
-    current_line_label = line_label if col == 0 else None
-    current_probs = probs[:, col]
-
-    # Sort the array of probs and choices
-    sort_order = np.argsort(current_probs)
-    current_probs = current_probs[sort_order]
-    current_choices = choices[sort_order]
-
-    _plot_single_binned_x_vs_binned_y(current_probs,
-                                      current_choices,
-                                      ax,
-                                      current_line_label,
-                                      line_color,
-                                      alpha,
-                                      obs_per_partition,
-                                      mean_probs_per_group,
-                                      mean_y_per_group)
-    return None
-
-
 def add_ref_line(ax, ref_label="Perfect Calibration"):
     """
     Plots a diagonal line to show perfectly calibrated probabilities.
@@ -141,28 +74,32 @@ def add_ref_line(ax, ref_label="Perfect Calibration"):
     return None
 
 
-def plot_binned_reliability(probs,
-                            choices,
-                            partitions=10,
-                            line_color='#1f78b4',
-                            line_label='Observed vs Predicted',
-                            alpha=None,
-                            sim_y=None,
-                            sim_line_color='#a6cee3',
-                            sim_label='Simulated vs Predicted',
-                            sim_alpha=0.5,
-                            x_label='Mean Predicted Probability',
-                            y_label='Binned\nEmpirical\nProbability',
-                            title=None,
-                            fontsize=12,
-                            ref_line=False,
-                            figsize=(5, 3),
-                            fig_and_ax=None,
-                            legend=True,
-                            progress_bar=True,
-                            show=True,
-                            output_file=None,
-                            dpi=500):
+def plot_smoothed_reliability(probs,
+                              choices,
+                              discrete=True,
+                              partitions=10,
+                              n_estimators=50,
+                              min_samples_leaf=10,
+                              random_state=None,
+                              line_color='#1f78b4',
+                              line_label='Observed vs Predicted',
+                              alpha=None,
+                              sim_y=None,
+                              sim_line_color='#a6cee3',
+                              sim_label='Simulated vs Predicted',
+                              sim_alpha=0.5,
+                              x_label='Mean Predicted Probability',
+                              y_label='Binned\nEmpirical\nProbability',
+                              title=None,
+                              fontsize=12,
+                              ref_line=False,
+                              figsize=(5, 3),
+                              fig_and_ax=None,
+                              legend=True,
+                              progress_bar=True,
+                              show=True,
+                              output_file=None,
+                              dpi=500):
     """
     Creates a binned reliability plot based on the given probability
     predictions and the given observed outcomes.
@@ -176,8 +113,29 @@ def plot_binned_reliability(probs,
         Each element should be either a zero or a one. Elements should denote
         whether the alternative corresponding to the given row was chosen or
         not. A 'one' corresponds to a an outcome of 'success'.
-    partitions : positive int.
+    discrete : bool, optional.
+        Determines whether discrete smoothing (i.e. binning) will be used or
+        whether continuous binning via Extremely Randomized Trees will be used.
+        Default is to use discrete binning, so `discrete == True`.
+    partitions : positive int, optional.
         Denotes the number of partitions to split one's data into for binning.
+        Only used if `discrete is True`. Default == 10.
+    n_estimators : positive int, optional.
+        Determines the number of trees in the ensemble of Extremely Randomized
+        Trees that is used to do continuous smoothing. This parameter controls
+        how smooth one's resulting estimate is. The more estimators the
+        smoother one's estimated relationship and the lower the variance in
+        that estimated relationship. This kwarg is only used if `discrete is
+        False`. Default == 50.
+    min_samples_leaf : positive int, optional.
+        Determines the minimum number of observations allowed in a leaf node in
+        any tree in the ensemble. This parameter is conceptually equivalent to
+        the bandwidth parameter in a kernel density estimator. This kwarg is
+        only used if `discrete is False`. Default == 10.
+    random_state : positive int, or None, optional.
+        Denotes the random seed to be used when constructing the ensemble of
+        Extremely Randomized Trees. This kwarg is only used if `discrete is
+        False`. Default is None.
     line_color : valid matplotlib color, optional.
         Determines the color that is used to plot the predicted probabilities
         versus the observed choices. Default is `'#1f78b4'`.
@@ -262,12 +220,17 @@ def plot_binned_reliability(probs,
     else:
         sim_iterator = range(probs.shape[1])
 
-    # Determine the number of observations in each partition
-    obs_per_partition = _determine_bin_obs(probs.shape[0], partitions)
+    # Create the desired smoother
+    if discrete:
+        smoother =\
+            DiscreteSmoother(num_obs=probs.shape[0], partitions=partitions)
+    else:
+        smoother = ContinuousSmoother(n_estimators=n_estimators,
+                                      min_samples_leaf=min_samples_leaf,
+                                      random_state=random_state)
 
-    # Initialize an array for each group's mean probabilities and observations
-    mean_probs_per_group = np.zeros(partitions)
-    mean_y_per_group = np.zeros(partitions)
+    # Create the plotter that will plot single smooth curves
+    plotter = SmoothPlotter(smoother=smoother, ax=ax)
 
     # Create helper functions
     def get_current_probs(col):
@@ -281,25 +244,12 @@ def plot_binned_reliability(probs,
     if sim_y is not None:
         for i in sim_iterator:
             current_label = sim_label if i == 0 else None
-            plot_binned_reliability(get_current_probs(i),
-                                    sim_y[:, i],
-                                    partitions=partitions,
-                                    line_color=sim_line_color,
-                                    line_label=current_label,
-                                    alpha=sim_alpha,
-                                    sim_y=None,
-                                    sim_line_color=None,
-                                    sim_label=None,
-                                    title=None,
-                                    fontsize=fontsize,
-                                    ref_line=False,
-                                    figsize=figsize,
-                                    fig_and_ax=fig_and_ax,
-                                    legend=False,
-                                    progress_bar=False,
-                                    show=False,
-                                    output_file=None,
-                                    dpi=dpi)
+            plotter.plot(get_current_probs(i),
+                         sim_y[:, i],
+                         label=current_label,
+                         color=sim_line_color,
+                         alpha=sim_alpha,
+                         sort=True)
 
     # Create the progressbar iterator if desired
     if progress_bar:
@@ -309,9 +259,12 @@ def plot_binned_reliability(probs,
 
     # Make the 'true' reliability plots
     for col in prob_iterator:
-        _plot_single_binned_reliability_curve(
-            probs, choices, col, ax, line_label, line_color,
-            alpha, obs_per_partition, mean_probs_per_group, mean_y_per_group)
+        plotter.plot(get_current_probs(col),
+                     choices,
+                     label=line_label,
+                     color=line_color,
+                     alpha=alpha,
+                     sort=True)
 
     # Create the reference line if desired
     if ref_line:
