@@ -4,6 +4,8 @@ file gives users a way to:
 - create prorgress bars without worrying about the python environment
 - determine if a given vector contains data that is in some way categorical
 - simulate from their model's predicted probabilities.
+- compute log-likelihoods and mean-square errors from their models simulated
+  outcomes and predicted probabilities.
 """
 import sys
 
