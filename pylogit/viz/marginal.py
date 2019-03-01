@@ -121,10 +121,6 @@ def plot_smoothed_marginal(sim_y,
         Only used if `discrete is True`. Default == 10.
     n_estimators : positive int, optional.
         Determines the number of trees in the ensemble of Extremely Randomized
-        Trees that is used to do continuous smoothing. This kwarg is only used
-        if `discrete is False`. Default == 50.
-    n_estimators : positive int, optional.
-        Determines the number of trees in the ensemble of Extremely Randomized
         Trees that is used to do continuous smoothing. This parameter controls
         how smooth one's resulting estimate is. The more estimators the
         smoother one's estimated relationship and the lower the variance in
