@@ -96,7 +96,6 @@ def _get_objects_for_market_share_plot(x,
     # Also make the x_label values the index for the observed dataframe for
     # later sorting.
     obs_df.index = [str(v) for v in obs_df[x_label].values]
-
     return boxplot_df, obs_df
 
 
@@ -179,7 +178,7 @@ def plot_simulated_market_shares(x,
     -------
     None
     """
-    # Ensure the display dict has all possible values that in x.
+    # Ensure the display dict has all possible values that are in x.
     if display_dict is not None:
         safe_display = {k: k for k in np.unique(x)}
         safe_display.update(display_dict)

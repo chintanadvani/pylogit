@@ -98,7 +98,7 @@ def plot_continous_scalars(sim_scalars,
 
     # Create the vertical line to show the observed scalar
     line_label = obs_label + '\nP(samples < observed) = {:.0%}'
-    axis.vlines(obs_scalar, min_y, max_y, abslinestyle='dashed',
+    axis.vlines(obs_scalar, min_y, max_y, linestyle='dashed',
                 label=line_label.format(simulated_frac_below_observed))
 
     # Create the plot legend

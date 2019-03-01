@@ -32,7 +32,7 @@ def plot_simulated_kdes(sim_y,
                         bar_alpha=0.5,
                         bar_color='#fee391',
                         thin_pct=None,
-                        n_traces=100,
+                        n_traces=None,
                         rseed=None,
                         show=True,
                         figsize=(10, 6),
@@ -97,7 +97,7 @@ def plot_simulated_kdes(sim_y,
     n_traces : int or None, optional.
         Should be less than `sim_y.shape[1]`. Denotes the number of simulated
         choices to randomly select for plotting. If None, all columns of
-        `sim_y` will be used for plotting. Default == 100.
+        `sim_y` will be used for plotting. Default is None.
     rseed : int or None, optional.
         Denotes the random seed to be used when selecting the `n_traces`
         columns for plotting. This is useful for reproducing an exact plot when
