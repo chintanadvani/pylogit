@@ -14,6 +14,13 @@ from .plot_utils import _label_despine_save_and_show_plot
 from .plot_utils import _choice_evaluator
 from .plot_utils import _thin_rows
 
+try:
+    # in Python 3 range returns an iterator instead of list
+    # to maintain backwards compatibility use "old" version of range
+    from past.builtins import range
+except ImportError:
+    pass
+
 # Set the plotting style
 sbn.set_style('darkgrid')
 
@@ -148,7 +155,7 @@ def plot_simulated_kdes(sim_y,
         filtered_orig_df = filtered_orig_df.iloc[selected_rows, :]
 
     sample_iterator =\
-        progress(xrange(filtered_sim_y.shape[1]), desc='Calculating KDEs')
+        progress(range(filtered_sim_y.shape[1]), desc='Calculating KDEs')
 
     # Get the original values
     orig_choices = filtered_orig_df[choice_col].values

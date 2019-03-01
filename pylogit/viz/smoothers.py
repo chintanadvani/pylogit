@@ -10,6 +10,13 @@ import numpy as np
 from sklearn.ensemble import (ExtraTreesClassifier,
                               ExtraTreesRegressor)
 
+try:
+    # in Python 3 range returns an iterator instead of list
+    # to maintain backwards compatibility use "old" version of range
+    from past.builtins import range
+except ImportError:
+    pass
+
 
 def _determine_bin_obs(total, partitions):
     """
