@@ -11,8 +11,7 @@ import matplotlib.pyplot as plt
 
 from .utils import progress
 from .plot_utils import _label_despine_save_and_show_plot
-from .plot_utils import _determine_bin_obs
-from .plot_utils import _plot_single_binned_x_vs_binned_y
+from .smoothers import DiscreteSmoother, ContinuousSmoother, SmoothPlotter
 
 # Set the plotting style
 sbn.set_style('darkgrid')
@@ -61,32 +60,37 @@ def _check_mmplot_ref_vals(probs, ref_vals):
     return None
 
 
-def plot_binned_marginal(sim_y,
-                         choices,
-                         ref_vals,
-                         probs=None,
-                         partitions=10,
-                         y_color='#1f78b4',
-                         prob_color='#a6cee3',
-                         sim_color='#fb9a99',
-                         y_label='Observed',
-                         prob_label='Predicted',
-                         sim_label='Simulated',
-                         y_axis_label='Binned,\nMean\nProbability',
-                         x_label='Binned, Mean Reference Values',
-                         alpha=None,
-                         title=None,
-                         fontsize=12,
-                         figsize=(5, 3),
-                         fig_and_ax=None,
-                         legend=True,
-                         progress_bar=True,
-                         show=True,
-                         output_file=None,
-                         dpi=500):
+def plot_smoothed_marginal(sim_y,
+                           choices,
+                           ref_vals,
+                           probs=None,
+                           discrete=True,
+                           partitions=10,
+                           n_estimators=50,
+                           min_samples_leaf=10,
+                           random_state=None,
+                           y_color='#1f78b4',
+                           prob_color='#a6cee3',
+                           sim_color='#fb9a99',
+                           y_label='Observed',
+                           prob_label='Predicted',
+                           sim_label='Simulated',
+                           y_axis_label='Binned,\nMean\nProbability',
+                           x_label='Binned, Mean Reference Values',
+                           alpha=None,
+                           title=None,
+                           fontsize=12,
+                           figsize=(5, 3),
+                           fig_and_ax=None,
+                           legend=True,
+                           progress_bar=True,
+                           show=True,
+                           output_file=None,
+                           dpi=500):
     """
-    Creates a binned, marginal model plot based on simulated outcomes, observed
-    outcomes, refernce values, and optionally, one's predicted probabilities.
+    Creates a smoothed marginal model plot based on simulated outcomes,
+    observed outcomes, refernce values, and optionally, one's predicted
+    probabilities.
 
     Parameters
     ----------
@@ -108,8 +112,33 @@ def plot_binned_marginal(sim_y,
         predicted probabilities (1D) or a sample of predicted probabilities
         (2D) is useful for visualizing the relationships that one's model
         expects, asymptotically.
-    partitions : positive int.
+    discrete : bool, optional.
+        Determines whether discrete smoothing (i.e. binning) will be used or
+        whether continuous binning via Extremely Randomized Trees will be used.
+        Default is to use discrete binning, so `discrete == True`.
+    partitions : positive int, optional.
         Denotes the number of partitions to split one's data into for binning.
+        Only used if `discrete is True`. Default == 10.
+    n_estimators : positive int, optional.
+        Determines the number of trees in the ensemble of Extremely Randomized
+        Trees that is used to do continuous smoothing. This kwarg is only used
+        if `discrete is False`. Default == 50.
+    n_estimators : positive int, optional.
+        Determines the number of trees in the ensemble of Extremely Randomized
+        Trees that is used to do continuous smoothing. This parameter controls
+        how smooth one's resulting estimate is. The more estimators the
+        smoother one's estimated relationship and the lower the variance in
+        that estimated relationship. This kwarg is only used if `discrete is
+        False`. Default == 50.
+    min_samples_leaf : positive int, optional.
+        Determines the minimum number of observations allowed in a leaf node in
+        any tree in the ensemble. This parameter is conceptually equivalent to
+        the bandwidth parameter in a kernel density estimator. This kwarg is
+        only used if `discrete is False`. Default == 10.
+    random_state : positive int, or None, optional.
+        Denotes the random seed to be used when constructing the ensemble of
+        Extremely Randomized Trees. This kwarg is only used if `discrete is
+        False`. Default is None.
     y_color, prob_color, sim_color : matplotlib color, or `None`, optional.
         Determines the color that is used to plot the observed choices,
         predicted probabilities, and simulated choices versus `ref_vals`.
@@ -180,25 +209,26 @@ def plot_binned_marginal(sim_y,
     else:
         sim_iterator = range(sim_y.shape[1])
 
-    # Determine the number of observations in each partition
-    obs_per_partition = _determine_bin_obs(sim_y.shape[0], partitions)
+    # Create the desired smoother
+    if discrete:
+        smoother =\
+            DiscreteSmoother(num_obs=ref_vals.shape[0], partitions=partitions)
+    else:
+        smoother = ContinuousSmoother(n_estimators=n_estimators,
+                                      min_samples_leaf=min_samples_leaf,
+                                      random_state=random_state)
 
-    # Initialize arrays to store the mean x- and y-values per group
-    mean_x_per_group = np.zeros(partitions)
-    mean_y_per_group = np.zeros(partitions)
+    # Create the plotter that will plot single smooth curves
+    plotter = SmoothPlotter(smoother=smoother, ax=ax)
 
     # Plot the simulated choices vs reference vals
     for i in sim_iterator:
         current_label = sim_label if i == 0 else None
-        _plot_single_binned_x_vs_binned_y(ref_vals,
-                                          sim_y[:, i],
-                                          ax,
-                                          current_label,
-                                          sim_color,
-                                          alpha,
-                                          obs_per_partition,
-                                          mean_x_per_group,
-                                          mean_y_per_group)
+        plotter.plot(ref_vals,
+                     sim_y[:, i],
+                     label=current_label,
+                     color=sim_color,
+                     alpha=alpha)
 
     # Plot the probabilities versus the ref values.
     if probs is not None:
@@ -216,29 +246,19 @@ def plot_binned_marginal(sim_y,
             # Get the current line label and probabilities
             current_label = prob_label if col == 0 else None
             current_probs = probs[:, col]
-            _plot_single_binned_x_vs_binned_y(ref_vals,
-                                              current_probs,
-                                              ax,
-                                              current_label,
-                                              prob_color,
-                                              alpha,
-                                              obs_per_partition,
-                                              mean_x_per_group,
-                                              mean_y_per_group)
+            plotter.plot(ref_vals,
+                         current_probs,
+                         label=current_label,
+                         color=prob_color,
+                         alpha=alpha)
+
     #####
     # Plot observed choices versus ref_vals
     #####
     # Make sure the 'true' relationship is not transparent
     observed_alpha = 1.0
-    _plot_single_binned_x_vs_binned_y(ref_vals,
-                                      choices,
-                                      ax,
-                                      y_label,
-                                      y_color,
-                                      observed_alpha,
-                                      obs_per_partition,
-                                      mean_x_per_group,
-                                      mean_y_per_group)
+    plotter.plot(ref_vals,
+                 choices, label=y_label, color=y_color, alpha=observed_alpha)
 
     # Make the legend, if desired
     if legend:
