@@ -12,9 +12,11 @@ from copy import deepcopy
 import mock
 
 import numpy as np
+import numpy.testing as npt
+
 import pandas as pd
 from scipy.sparse import csr_matrix
-import numpy.testing as npt
+
 import pylogit.mixed_logit_calcs as mlc
 import pylogit.mixed_logit as mixed_logit
 
