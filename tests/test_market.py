@@ -59,7 +59,7 @@ class MarketShareTests(unittest.TestCase):
         return None
 
     # First test the desired functionality with hand-crafted, correct inputs
-    # Second, test the desired functionality with hand-crafted, incorrect inputs
+    # Second, test desired functionality with hand-crafted, incorrect inputs
     # Third, find the code's limits and test the desired functionality with
     # property-based testing.
     def test_get_objects_for_market_share_plot(self, display=False):
@@ -127,7 +127,7 @@ class MarketShareTests(unittest.TestCase):
 
         # Set values for the plot
         figsize = (5, 3)
-        fig_and_ax =[None, mock_ax]
+        fig_and_ax = [None, mock_ax]
         fontsize = 14
         title = 'Test Plot'
         box_color = 'grey'
@@ -146,9 +146,8 @@ class MarketShareTests(unittest.TestCase):
                 'get_legend_handles_labels',
                 mock.MagicMock(return_value=((None,), (None,))))
 
-        # For the xtick labels, we'll need a two-level, nested Mock
-        # We will proceed backwards, first setting the mocks for the objects
-        # (i.e. the 'v') that will be returned in the list from get_xticklabels
+        # For the xtick labels, we'll need a list of mocks for the objects
+        # (i.e. the 'v') that will be returnedfrom ax.get_xticklabels()
         xtick_return_values = []
         values_seen = []
         for value in self.OBS_DF[self.x_label].values:
@@ -166,7 +165,7 @@ class MarketShareTests(unittest.TestCase):
         # upper level mock.
         setattr(mock_ax,
                 'get_xticklabels',
-                lambda : xtick_return_values)
+                lambda: xtick_return_values)
 
         # Determine function arguments and keyword arguments
         args = (self.MARKET_X, self.MARKET_SIM_Y, self.MARKET_Y)
@@ -201,14 +200,28 @@ class MarketShareTests(unittest.TestCase):
             data=self.BOXPLOT_DF,
             color=box_color,
             ax=mock_ax)
-        # mock_sbn_strip.assert_called_once_with(
-        #     x=self.x_label,
-        #     y=self.y_label,
-        #     ax=mock_ax,
-        #     color=obs_color,
-        #     s=obs_size,
-        #     marker=obs_marker,
-        #     label=obs_label)
+
+        expected_strip_args_and_values =\
+            dict(x=self.x_label,
+                 y=self.y_label,
+                 data=self.OBS_DF,
+                 ax=mock_ax,
+                 color=obs_color,
+                 s=obs_size,
+                 marker=obs_marker,
+                 label=obs_label)
+
+        # Check for equality of dataframes separately from
+        # mock_sbn_strip.assert_called_once_with() because it was giving errors
+        # for some unknown reason.
+        for key in expected_strip_args_and_values:
+            value = expected_strip_args_and_values[key]
+            func_arg = mock_sbn_strip.call_args[1][key]
+            if key != 'data':
+                self.assertEqual(value, func_arg)
+            else:
+                pd.util.testing.assert_frame_equal(value, func_arg)
+
         mock_label.assert_called_once_with(
             x_label=self.x_label,
             y_label=self.y_label,
