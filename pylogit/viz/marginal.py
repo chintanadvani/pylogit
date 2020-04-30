@@ -29,7 +29,7 @@ def _check_marginal_args(probs, choices, partitions, sim_y):
     Ensures `probs` is a 1D or 2D ndarray, that `choices` is a 1D ndarray, that
     `partitions` is an int, and that `sim_y` is a 2D ndarray.
     """
-    if not isinstance(probs, (np.ndarray, None)):
+    if not isinstance(probs, np.ndarray) and probs is not None:
         msg = '`probs` MUST be an ndarray or None.'
         raise ValueError(msg)
     if isinstance(probs, np.ndarray) and probs.ndim not in [1, 2]:
@@ -61,9 +61,10 @@ def _check_mmplot_ref_vals(probs, ref_vals):
     if not isinstance(ref_vals, np.ndarray) or ref_vals.ndim != 1:
         msg = "`ref_vals` MUST be a 1D ndarray."
         raise ValueError(msg)
-    elif ref_vals.shape[0] != probs.shape[0]:
-        msg = "`ref_vals` MUST have the same number of rows as `probs`."
-        raise ValueError(msg)
+    elif probs is not None:
+        if ref_vals.shape[0] != probs.shape[0]:
+            msg = "`ref_vals` MUST have the same number of rows as `probs`."
+            raise ValueError(msg)
     return None
 
 
